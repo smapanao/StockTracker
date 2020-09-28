@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1" fx:controller="assignment5.FXMLStockTrackerController">
+    <left>
+        <VBox>
+            <children>
+                <Label text="Select an item from the list"/>
+                <ListView fx:id="stockItems" prefWidth="550.0"/>
+                <Label fx:id="lblSelectedItem"/>
+            </children>
+        </VBox>
+    </left>
+    <right>
+        <VBox>
+            <children>
+        <Label text="Add Products:"/>
+        <TextField promptText="Prod. ID - ex: 123_ABC" fx:id="txtProdID"/>
+        <TextField promptText="Prod. Name" fx:id="txtProdName"/>
+        <TextField promptText="Qty On Hand (Number)" fx:id="txtQoh"/>
+        <TextField promptText="Restock Point (Number)" fx:id="txtRsp"/>
+        <TextField promptText="Sale Price (Number)" fx:id="txtSalePrice"/>
+        <TextField promptText="Buy Price (Number)" fx:id="txtBuyPrice"/>
+        <Button text="Add Product" onAction="#addProd"/>
+        <Label text="Amount to Buy:"/>
+        <TextField promptText="Number of Prod. to Buy" fx:id="txtBuyAmt"/>
+        <Button text="Buy" onAction="#buy"/>
+        <Label fx:id="lblPrice"/>
+            </children>
+        </VBox>    
+    </right>
+</BorderPane>

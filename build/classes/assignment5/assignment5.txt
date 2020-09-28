@@ -1,0 +1,398 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1" fx:controller="assignment5.FXMLStockTrackerController">
+    <left>
+        <VBox>
+            <children>
+                <Label text="Select an item from the list"/>
+                <ListView fx:id="stockItems" prefWidth="550.0"/>
+                <Label fx:id="lblSelectedItem"/>
+            </children>
+        </VBox>
+    </left>
+    <right>
+        <VBox>
+            <children>
+        <Label text="Add Products:"/>
+        <TextField promptText="Prod. ID - ex: 123_ABC" fx:id="txtProdID"/>
+        <TextField promptText="Prod. Name" fx:id="txtProdName"/>
+        <TextField promptText="Qty On Hand (Number)" fx:id="txtQoh"/>
+        <TextField promptText="Restock Point (Number)" fx:id="txtRsp"/>
+        <TextField promptText="Sale Price (Number)" fx:id="txtSalePrice"/>
+        <TextField promptText="Buy Price (Number)" fx:id="txtBuyPrice"/>
+        <Button text="Add Product" onAction="#addProd"/>
+        <Label text="Amount to Buy:"/>
+        <TextField promptText="Number of Prod. to Buy" fx:id="txtBuyAmt"/>
+        <Button text="Buy" onAction="#buy"/>
+        <Label fx:id="lblPrice"/>
+            </children>
+        </VBox>    
+    </right>
+</BorderPane>
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package assignment5;
+
+import assignment5.model.Stock;
+import java.net.URL;
+import java.util.ResourceBundle;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
+import javafx.scene.control.TextField;
+
+/**
+ * FXML Controller class
+ *
+ * @author seanmapanao
+ */
+public class FXMLStockTrackerController implements Initializable {
+
+    @FXML
+    private ListView<Stock> stockItems;
+
+    @FXML
+    private TextField txtProdID;
+
+    @FXML
+    private TextField txtProdName;
+
+    @FXML
+    private TextField txtQoh;
+
+    @FXML
+    private TextField txtRsp;
+
+    @FXML
+    private TextField txtSalePrice;
+
+    @FXML
+    private TextField txtBuyPrice;
+
+    @FXML
+    private Label lblSelectedItem;
+
+    @FXML
+    private Button buy;
+
+    @FXML
+    private TextField txtBuyAmt;
+
+    @FXML
+    private Label lblPrice;
+
+    /**
+     * Initializes the controller class.
+     */
+    @Override
+    public void initialize(URL url, ResourceBundle rb) {
+
+        //Displays premade items in list
+        Stock[] stock = {new Stock("234_XYZ", "itemX", 20, 25, 10, 3),
+            new Stock("567_DDD", "itemY", 10, 15, 7, 4),
+            new Stock("999_AAA", "itemZ", 15, 20, 5, 2)};
+
+        //displays premade items in list
+        ObservableList<Stock> obsStock = FXCollections.observableArrayList(stock);
+        stockItems.setItems(obsStock);
+
+        //default text before user presses "Buy" button
+        lblPrice.setText("ReStock Fee");
+
+        //Sets a default selection if user presses buy without choosing an item
+        stockItems.getSelectionModel().select(0);
+        lblSelectedItem.setText(stockItems.getSelectionModel().getSelectedItem().toString());
+
+        //listener that updats selected item label in bottom left side of screen
+        stockItems.getSelectionModel().selectedItemProperty().addListener((v, oldValue, newValue) -> lblSelectedItem.setText(newValue.toString()));
+    }
+
+    @FXML
+    private void addProd(ActionEvent event) {
+
+        //user inputs
+        String prodID, prodName;
+        int qoh, rsp;
+        double salePrice, buyPrice;
+        boolean isValid = true;
+
+        prodName = txtProdName.getText();
+
+        //for productID validation - must be 3 numbers + "_" + 3 capital letters
+        String regex = "\\d{3}_[A-Z]{3}";
+
+        if (!txtProdID.getText().matches(regex) || txtProdID.getText().isEmpty() == true) {
+            isValid = false;
+        }
+        
+        //more validation, number textfield must be field and >= 0
+        if (!txtQoh.getText().matches("\\b\\d+\\b") || txtQoh.getText().isEmpty() == true) {
+            isValid = false;
+        }
+
+        if (!txtRsp.getText().matches("\\b\\d+\\b") || txtRsp.getText().isEmpty() == true) {
+            isValid = false;
+        }
+
+        if (!txtSalePrice.getText().matches("\\b\\d+\\b") || txtSalePrice.getText().isEmpty() == true) {
+            isValid = false;
+        }
+
+        if (!txtBuyPrice.getText().matches("\\b\\d+\\b") || txtBuyPrice.getText().isEmpty() == true) {
+            isValid = false;
+        }
+
+        if (isValid == true) {
+            prodID = txtProdID.getText();
+            qoh = Integer.parseInt(txtQoh.getText());
+            rsp = Integer.parseInt(txtRsp.getText());
+            salePrice = Double.parseDouble(txtSalePrice.getText()); //TextField --> double
+            buyPrice = Double.parseDouble(txtBuyPrice.getText()); //TextField --> double
+
+            //adds new items to list when "Add Product" button is pressed
+            stockItems.getItems().add(new Stock(prodID, prodName, qoh, rsp, salePrice, buyPrice));
+        } else {
+            lblSelectedItem.setText("Error");//update label that there's an error
+        }
+    }
+
+    @FXML
+    private void buy(ActionEvent event) {
+        
+        //validation for buy amount text field
+        if(txtBuyAmt.getText().matches("\\b\\d+\\b")){
+        
+        int amtBought = Integer.parseInt(txtBuyAmt.getText()); //TextField --> int
+        Stock selectedItem = stockItems.getSelectionModel().getSelectedItem();//Gets content of selected item
+        Double buyPrice = selectedItem.getBuyPrice(); //TextField --> double
+        Double totalPrice = buyPrice * amtBought; //TextField --> double 
+        
+        //Updates label
+        lblPrice.setText("Total ReStock Fee: $" + String.format("%.2f", totalPrice));
+        lblSelectedItem.setText(stockItems.getSelectionModel().getSelectedItem().toString());
+        }
+        else{
+        lblPrice.setText("Please enter a valid amount");
+        }
+    }
+}
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package assignment5;
+import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
+import assignment5.model.Stock;
+/**
+ *
+ * @author seanmapanao
+ */
+
+ public class Main extends Application {
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String[] args) {
+        launch(args);
+    }
+ 
+    @Override
+    public void start(Stage stage) throws Exception {
+        Parent root = FXMLLoader.load(getClass().getResource("FXMLStockTracker.fxml"));
+        stage.setTitle("Assignment 5");
+        stage.setScene(new Scene(root));
+        stage.show();
+    }
+}
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package assignment5.model;
+
+/**
+ *
+ * @author seanmapanao
+ */
+public class Stock {
+    
+//data members and their default values.
+    private String productID = "111_AAA";
+    private String productName = "Unknown Product";
+    private int qoh = 0;
+    private int rsp = 25;
+    private double sellPrice = 0;
+    private double buyPrice = 0;
+
+
+    public Stock() {
+        
+    }
+
+    public Stock(String productID, String productName, double sellPrice) {
+        this.productID = productID;
+        this.productName = productName;
+        this.sellPrice = sellPrice;
+
+    }
+
+    public Stock(String productID, String productName, int qoh, int rsp, double 
+            sellPrice, double buyPrice) {
+        this.productID = productID;
+        this.productName = productName;
+        this.qoh = qoh;
+        this.rsp = rsp;
+        this.sellPrice = sellPrice;
+        this.buyPrice = buyPrice;
+    }
+
+    public String getProductId() {
+        return productID;
+    }
+    
+    // calls isValidProductID method for name validation. 
+    public void setProductId(String id) {
+        if (id.length() != 7 || isValidProductID(id) == false) {
+            IllegalArgumentException validity = new IllegalArgumentException(
+                    "Product ID  must consists of 7 characters with 3 digits, "
+                    + "followed by an underscore, followed by 3 uppercase"
+                    + " letters ");
+            throw validity;
+        } else {
+            productID = id;
+        }
+    }
+
+    public String getProductName() {
+        return productName;
+    }
+
+    public void setProductName(String name) {
+        productName = name;
+    }
+
+    public int getQoh() {
+        return qoh;
+    }
+    
+    //QOH validation - can't be a negative number.
+    public void setQoh(int qoh) {
+        if (qoh < 0) {
+            IllegalArgumentException quantity = new IllegalArgumentException("QOH"
+                    + " can not be a negative number.");
+            throw quantity;
+        } else {
+            this.qoh = qoh;
+        }
+    }
+
+    public int getRsp() {
+        return rsp;
+    }
+
+    public void setRsp(int rsp) {
+        this.rsp = rsp;
+    }
+
+    public double getSellPrice() {
+        return sellPrice;
+    }
+    
+    //SellPrice validation - can't be a negative number.
+    public void setSellPrice(double sPrice) {
+        if (sPrice < 0) {
+            IllegalArgumentException sellingPrice = new IllegalArgumentException(
+                    "Sell price can not be a negative number.");
+            throw sellingPrice;
+        } else {
+            sellPrice = sPrice;
+        }
+    }
+
+    public double getBuyPrice() {
+        return buyPrice;
+    }
+    
+    //BuyPrice validation - can't be a negative number.
+    public void setBuyPrice(double bPrice) {
+        if (bPrice < 0) {
+            IllegalArgumentException buyingPrice = new IllegalArgumentException(
+                    "Buy price can not be a negative number.");
+            throw buyingPrice;
+        } else {
+            buyPrice = bPrice;
+        }
+    }
+    
+    //Multiplies number of units wanted and buy price. Rounded to nearest decimal.
+    public double reStockFee(int bQuantity) {
+        
+        return bQuantity * buyPrice;
+    }
+    
+    //Validates Product ID name - must consist of 7 characters, first three 
+    //numbers, followed by an underscore (_), followed by three uppercase letters.
+    public static boolean isValidProductID(String productID) {
+        boolean isValid = true;
+
+        char[] ch = new char[productID.length()];
+
+        for (int i = 0; i < productID.length(); i++) {
+            ch[i] = productID.charAt(i);
+        }
+
+        for (int i = 0; i <= 2; i++) {
+            if (ch[i] < '0' || ch[i] > '9') {
+                isValid = false;
+            }
+        }
+
+        if (ch[3] != '_') {
+            isValid = false;
+        }
+
+        for (int i = 4; i <= 6; i++) {
+            if (ch[i] < 'A' || ch[i] > 'Z') {
+                isValid = false;
+            }
+
+        }
+
+        return isValid;
+
+    }
+    
+    //String representation of stock object.
+    @Override
+    public String toString() {
+        
+        String roundedTotal = String.format("%.2f", getBuyPrice());
+ 
+            return productID + " (" + productName + "), " + "QOH:" + qoh
+                    + " Buying Price: $" + roundedTotal;
+        }
+
+    }
+
+
+    
